@@ -36,5 +36,5 @@ SEC-SNIFFER PRO is a powerful Static Application Security Testing (SAST) tool de
 *  Developer Friendly: Designed to be lightweight and easy to use without complex command-line arguments.
 *  Detailed Audits: Provides exact line numbers and file paths in professional HTML reports.
   
-  **Disclaimer**
+    **Disclaimer**
 *  This project is intended for educational purposes and authorized security auditing only. Always obtain explicit permission before scanning third-party repositories.

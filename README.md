@@ -1,25 +1,38 @@
 # 🛡️ SEC-SNIFFER PRO
 **"High-Precision Real-time Secret Scanner & Security Auditor Tool"**
 
-SEC-SNIFFER PRO is a powerful Static Application Security Testing (SAST) tool developed in Python. It is designed to help developers and security auditors identify sensitive information such as API Keys, Credentials, and Tokens hidden within source code in real-time.
+SEC-SNIFFER PRO is a professional-grade Static Application Security Testing (SAST) engine designed to find hardcoded credentials, API keys, and tokens before they lead to a breach.
+Unlike traditional scanners that flood you with junk findings, SEC-SNIFFER PRO focuses on Accuracy, Context, and Actionable Results.
+
+* **🚀 Why Choose SEC-SNIFFER PRO?**
+Standard scanners often generate thousands of results, 90% of which are "False Positives" (junk data). SEC-SNIFFER PRO is engineered for high-fidelity detection—delivering fewer alerts, but ensuring every result is a verified True Positive.
 
 ## 🌟 Key Features
 
-* **🔍 Pattern-Based Detection:** Uses optimized Regular Expressions (Regex) to accurately detect AWS Keys, GitHub Tokens, Google API keys, and other private credentials.
-* **⚡ Performance Optimized:** Intelligently skips heavy metadata and dependency folders like `node_modules`, `.git`, and media assets to ensure lightning-fast scanning.
-* **🛰️ Live File-System Monitoring:** Features a 'Watchdog' logic that monitors your project directory. It automatically re-scans any file within seconds of it being saved.
-* **📉 False Positive Mitigation:** Implements a smart filtering layer to ignore dummy data (e.g., 'example_password') and common placeholders.
-* **🔔 Instant Audio Alerts:** Triggers a **Windows Beep (Audio Alert)** the moment a critical security leak is detected.
-* **📊 Professional Reporting:** Generates comprehensive and clean reports in **HTML Dashboard**, **CSV**, and **JSON** formats for easy auditing.
-* **🖥️ Responsive GUI:** A clean, multi-threaded Tkinter-based interface that ensures the tool remains responsive during background operations.
+* **🤖 AI-Powered Leak Analysis**: Uses intelligent logic to verify "threat potential." It analyzes variable names and code context to confirm real credentials, acting like a virtual security researcher.
+* **📉 Smart False-Positive Shield**: Advanced filtering automatically ignores dummy data (e.g., test_password) and common placeholders that usually trigger false alarms.
+* **🎯 Heuristic Entropy Discovery**: Uses Shannon Entropy to catch "silent" leaks—randomly generated strings like encryption keys or custom tokens that standard regex misses.
+* **📍 Exact Line-Level Precision**: Points you to the Exact Line Number and file path for every finding, allowing for instant verification and lightning-fast fixes.
+* **⚠️ Intelligent Risk Classification**: Performs a Permission Audit. If a secret is found in a "World-Readable" file, the risk is automatically escalated to CRITICAL.
+* **🛰️ Live 'Watchdog' Monitoring**: Monitors your project live. The moment you save a file, the 'Watchdog' logic re-scans it in seconds for immediate feedback.
+* **🔔 Instant Audio-Visual Alerts**: Triggers a Windows Beep and a visual GUI warning the moment a critical leak is detected, preventing secrets from ever being committed.
+* **⚡ Performance Optimized**: Multi-threaded engine intelligently skips heavy folders like node_modules and .git for lightning-fast scanning of large repositories.
+* **📊 Professional Reporting**: Generates audit-ready reports in Interactive HTML Dashboard, JSON, and CSV formats for seamless security documentation.
+* **🖥️ Responsive GUI**: A clean, multi-threaded Tkinter interface that stays smooth and responsive even during heavy background operations.
+
+**📊 Professional Reporting Suite**
+
+* **Audit-ready reports are generated in three formats**:
+* **Interactive HTML Dashboard**: A dark-themed, searchable UI with color-coded risk badges and fix instructions.
+* **JSON Output**: Clean, structured data ready for CI/CD Pipelines or automated security workflows.
+* **CSV Export**: Spreadsheet-friendly format for compliance and deep-dive audits.
 
 ## 🛠️ Technical Stack
 
 * **Language:** Python 3.x
-* **GUI Framework:** Tkinter (Multi-threaded architecture)
-* **Monitoring Logic:** Real-time directory polling
-* **Detection Engine:** Regular Expressions (Regex)
-* **Data Export:** JSON, CSV, and Dynamic HTML templates
+* **Logic**: AI-Contextual Filtering + Hybrid Regex + Shannon Entropy.
+* **UI**: Responsive Tkinter with asynchronous Queue handling.
+* **Remediation**: Built-in guidance for .env migration and secret rotation.
 
 ## 🚀 How to Use
 
@@ -31,10 +44,6 @@ SEC-SNIFFER PRO is a powerful Static Application Security Testing (SAST) tool de
    Click the 'Browse' button to select your target project folder.
    Click 'Start Monitor' to begin the security audit.
    The tool will run in the background. If a secret is saved in any file, you will hear a Beep Alert instantly!
-   **Why SEC-SNIFFER PRO?**
-*  Real-time Feedback: Unlike traditional scanners that run once, this tool monitors your work as you code.
-*  Developer Friendly: Designed to be lightweight and easy to use without complex command-line arguments.
-*  Detailed Audits: Provides exact line numbers and file paths in professional HTML reports.
   
     **Disclaimer**
 *  This project is intended for educational purposes and authorized security auditing only. Always obtain explicit permission before scanning third-party repositories.

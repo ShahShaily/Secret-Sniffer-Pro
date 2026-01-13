@@ -16,6 +16,9 @@ Standard scanners often generate thousands of results, 90% of which are "False P
 * **⚠️ Intelligent Risk Classification**: Performs a Permission Audit. If a secret is found in a "World-Readable" file, the risk is automatically escalated to CRITICAL.
 * **🛰️ Live 'Watchdog' Monitoring**: Monitors your project live. The moment you save a file, the 'Watchdog' logic re-scans it in seconds for immediate feedback.
 * **🔔 Instant Audio-Visual Alerts**: Triggers a Windows Beep and a visual GUI warning the moment a critical leak is detected, preventing secrets from ever being committed.
+* **☁️ Cloud-Native CI/CD Integration**: Fully integrated with GitHub Actions. Automatically triggers a security audit on every push or pull_request, acting as an automated quality gate for your            DevOps pipeline.
+* **🖥️ Dual-Mode Execution Engine**: Supports both a rich Graphical User Interface (GUI) for desktop users and a high-performance Headless CLI mode for servers, Docker containers, and automation            scripts.
+* **🛡️ Zero-Trust Git Guardian**: Deep-scans commit history and metadata to ensure no legacy secrets are hidden in your project's version control history.
 * **⚡ Performance Optimized**: Multi-threaded engine intelligently skips heavy folders like node_modules and .git for lightning-fast scanning of large repositories.
 * **📊 Professional Reporting**: Generates audit-ready reports in Interactive HTML Dashboard, JSON, and CSV formats for seamless security documentation.
 * **🖥️ Responsive GUI**: A clean, multi-threaded Tkinter interface that stays smooth and responsive even during heavy background operations.
@@ -29,21 +32,30 @@ Standard scanners often generate thousands of results, 90% of which are "False P
 
 ## 🛠️ Technical Stack
 
-* **Language:** Python 3.x
+* **Language**: Python 3.x
 * **Logic**: AI-Contextual Filtering + Hybrid Regex + Shannon Entropy.
 * **UI**: Responsive Tkinter with asynchronous Queue handling.
+* **Automation**: GitHub Actions (YAML) integration for continuous security auditing (CI/CD).
+* **Execution**: Headless CLI Mode for seamless integration into server-side environments and DevOps pipelines.
+* **Performance**: Multi-threaded I/O for real-time file monitoring without UI lag.
 * **Remediation**: Built-in guidance for .env migration and secret rotation.
 
 ## 🚀 How to Use
 
-1. **Clone the Repository:**
-   git clone [https://github.com/ShahShaily/SEC-SNIFFER-PRO.git](https://github.com/ShahShaily/SEC-SNIFFER-PRO.git)
-2. **Launch the Application:**
-   python sensitive_finder.py
-3. **Operation**:
-   Click the 'Browse' button to select your target project folder.
-   Click 'Start Monitor' to begin the security audit.
-   The tool will run in the background. If a secret is saved in any file, you will hear a Beep Alert instantly!
-  
-    **Disclaimer**
-*  This project is intended for educational purposes and authorized security auditing only. Always obtain explicit permission before scanning third-party repositories.
+* **Option 1**: Desktop Mode (Graphical Interface)
+1 **Clone the Repository**: git clone https://github.com/ShahShaily/SEC-SNIFFER-PRO.git
+2 **Install Requirements**: pip install -r requirements.txt
+3 **Launch the Application**: python sensitive_finder.py
+Operation:
+* Click the 'Browse' button to select your target project folder.
+* Click 'Start Monitor' to begin the security audit.
+* The tool will run in the background. If a secret is saved in any file, you will hear an Instant Beep Alert and see a visual warning!
+
+* **Option 2**: Cloud Mode (GitHub Actions Automation)
+* SEC-SNIFFER PRO is pre-configured for Continuous Security Monitoring:
+* Automatic Scan: Simply push your code to GitHub. The tool will automatically start scanning your files in the cloud.
+* Check Reports: Go to the 'Actions' tab in your GitHub repository to see the live security audit logs.
+* Pipeline Protection: If a leak is detected, GitHub will alert you immediately, ensuring no sensitive data is ever merged.
+
+**Disclaimer**
+This project is intended for educational purposes and authorized security auditing only. Always obtain explicit permission before scanning third-party repositories.

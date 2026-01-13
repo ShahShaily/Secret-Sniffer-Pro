@@ -8,6 +8,7 @@ import math
 import time
 import queue
 import threading
+import argparse
 from concurrent.futures import ThreadPoolExecutor
 import tkinter as tk
 from tkinter import filedialog, scrolledtext, messagebox, ttk
@@ -19,7 +20,7 @@ try:
 except ImportError:
     GIT_AVAILABLE = False
 
-# ================= COLORS =================
+# ================= COLORS (RESTORED) =================
 class Colors:
     RED = '\033[91m'
     GREEN = '\033[92m'
@@ -28,7 +29,7 @@ class Colors:
     BOLD = '\033[1m'
     END = '\033[0m'
 
-# ================= ASCII BANNER =================
+# ================= ASCII BANNER (RESTORED) =================
 def get_banner():
     return f"""{Colors.YELLOW}{Colors.BOLD}
 **********************************************************
@@ -41,18 +42,19 @@ def get_banner():
 **********************************************************
 {Colors.END}"""
 
-# ================= CONFIG =================
+# ================= MODERN 2026 PATTERNS (UPDATED) =================
 PATTERNS = {
-    "AWS Key": r"AKIA[0-9A-Z]{16}",
-    "GitHub Token": r"ghp_[A-Za-z0-9]{36}",
+    "AWS Access Key": r"(AKIA|ASIA|AIDA|ANPA|AROA)[A-Z0-9]{16}", # Modern Prefix Added
+    "GitHub Token": r"gh[pousr]_[A-Za-z0-9]{36,255}",          # Modern Format Added
     "Google API": r"AIza[0-9A-Za-z-_]{35}",
-    "Hardcoded Secret": r"(?i)(password|api_key|secret|token)\s*[:=]\s*['\"]([^'\"]{8,})['\"]"
+    "Hardcoded Secret": r"(?i)(password|api_key|secret|token|auth|bearer)\s*[:=]\s*['\"]([^'\"]{8,})['\"]"
 }
 
-ENTROPY_CONTEXT = re.compile(r"(key|token|secret|auth|bearer)", re.I)
+ENTROPY_CONTEXT = re.compile(r"(key|token|secret|auth|bearer|credential)", re.I)
 ENTROPY_REGEX = re.compile(r"[A-Za-z0-9+/=_-]{24,}")
 
 IGNORE_FILE = ".secsnifferignore"
+IGNORE_FOLDERS = {'.git', 'node_modules', 'venv', '__pycache__'}
 
 # ================= UTILS =================
 def shannon_entropy(s):
@@ -74,9 +76,9 @@ def load_ignore_list(root):
             for line in f: ignore.add(line.strip())
     return ignore
 
-# ================= SCANNER =================
+# ================= SCANNER (INTEGRATED NEW FEATURES) =================
 class Scanner:
-    def __init__(self, target, log_queue, progress_callback=None):
+    def __init__(self, target, log_queue=None, progress_callback=None):
         self.target = target
         self.log_queue = log_queue
         self.ignore = load_ignore_list(target)
@@ -86,115 +88,124 @@ class Scanner:
         self.scanned_files = 0
 
     def log(self, msg):
-        self.log_queue.put(msg)
+        if self.log_queue: self.log_queue.put(msg)
+        else: print(msg)
 
     def permission_info(self, path):
-        st = os.stat(path)
-        return {
-            "world_readable": bool(st.st_mode & stat.S_IROTH),
-            "group_writable": bool(st.st_mode & stat.S_IWGRP),
-            "executable": bool(st.st_mode & stat.S_IXUSR)
-        }
+        try:
+            st = os.stat(path)
+            return {
+                "world_readable": bool(st.st_mode & stat.S_IROTH),
+                "group_writable": bool(st.st_mode & stat.S_IWGRP),
+                "executable": bool(st.st_mode & stat.S_IXUSR)
+            }
+        except: return {"world_readable": False, "group_writable": False, "executable": False}
 
     def remediation(self, secret_type):
         return {
-            "AWS Key": "Rotate via IAM and move to Secrets Manager",
-            "GitHub Token": "Revoke token immediately",
-            "Hardcoded Secret": "Move to .env file",
-            "High Entropy Secret": "Store in secure vault",
-            "Git History Leak": "Rewrite git history"
-        }.get(secret_type, "Secure the secret")
+            "AWS Access Key": "Rotate via IAM and move to Secrets Manager",
+            "GitHub Token": "Revoke token immediately and check repository permissions",
+            "Hardcoded Secret": "Move to encrypted .env file or Vault",
+            "High Entropy Secret": "Verify if this is an Encryption Key and move to secure store",
+            "Git History Leak": "Use 'git filter-repo' to remove from history"
+        }.get(secret_type, "Secure the secret immediately")
+
+    def scan_content(self, content, source_name, line_num=1):
+        """Unified logic to scan strings from files OR git history"""
+        # Pattern matching
+        for name, reg in PATTERNS.items():
+            m = re.search(reg, content)
+            if m:
+                # If scanning a real file, check permissions
+                risk = "HIGH"
+                if os.path.exists(source_name):
+                    perms = self.permission_info(source_name)
+                    if perms["world_readable"]: risk = "CRITICAL"
+                
+                self.results.append({
+                    "file": source_name, "line": line_num, "type": name,
+                    "secret": mask_secret(m.group(0)),
+                    "risk": risk, "fix": self.remediation(name)
+                })
+
+        # Entropy matching
+        if ENTROPY_CONTEXT.search(content):
+            for chunk in ENTROPY_REGEX.findall(content):
+                if shannon_entropy(chunk) > 4.5:
+                    self.results.append({
+                        "file": source_name, "line": line_num, "type": "High Entropy Secret",
+                        "secret": mask_secret(chunk), "risk": "HIGH",
+                        "fix": self.remediation("High Entropy Secret")
+                    })
 
     def scan_file(self, path):
         try:
             with open(path, "r", encoding="utf-8", errors="ignore") as f:
                 for ln, line in enumerate(f, 1):
-                    for name, reg in PATTERNS.items():
-                        m = re.search(reg, line)
-                        if m:
-                            perms = self.permission_info(path)
-                            self.results.append({
-                                "file": path, "line": ln, "type": name,
-                                "secret": mask_secret(m.group(0)),
-                                "risk": "CRITICAL" if perms["world_readable"] else "HIGH",
-                                "fix": self.remediation(name)
-                            })
-                    if ENTROPY_CONTEXT.search(line):
-                        for chunk in ENTROPY_REGEX.findall(line):
-                            if shannon_entropy(chunk) > 4.5:
-                                self.results.append({
-                                    "file": path, "line": ln, "type": "High Entropy Secret",
-                                    "secret": mask_secret(chunk), "risk": "HIGH",
-                                    "fix": self.remediation("High Entropy Secret")
-                                })
+                    self.scan_content(line, path, ln)
+            
             self.scanned_files += 1
             if self.progress_callback:
                 self.progress_callback(self.scanned_files, self.total_files)
         except: pass
 
+    def scan_git_history(self):
+        """NEW FEATURE: Scan Commit Logs"""
+        if not GIT_AVAILABLE:
+            self.log("⚠️ GitPython not installed. Skipping History scan.")
+            return
+        try:
+            repo = Repo(self.target)
+            self.log("📜 Git History Scan: Analyzing last 5 commits...")
+            for commit in repo.iter_commits(max_count=5):
+                for parent in commit.parents:
+                    diffs = parent.diff(commit)
+                    for d in diffs:
+                        if d.b_blob:
+                            content = d.b_blob.data_stream.read().decode('utf-8', errors='ignore')
+                            self.scan_content(content, f"GIT-COMMIT:{commit.hexsha[:7]} ({d.b_path})")
+        except: self.log("⚠️ Not a git repository.")
+
     def scan_directory(self):
         self.log("🔍 Scanning filesystem...")
         file_list = []
-        for root, _, files in os.walk(self.target):
+        for root, dirs, files in os.walk(self.target):
+            # Performance Optimization: Skip heavy folders
+            dirs[:] = [d for d in dirs if d not in IGNORE_FOLDERS]
             for file in files:
                 path = os.path.join(root, file)
                 if not any(i in path for i in self.ignore):
                     file_list.append(path)
                     self.total_files += 1
+        
         with ThreadPoolExecutor(max_workers=8) as exe:
             for p in file_list: exe.submit(self.scan_file, p)
+        
+        # New Feature: Git Scanning
+        self.scan_git_history()
 
 # ================= REPORTER =================
 class Reporter:
     @staticmethod
     def save(results):
         if not results: return
+        # Save CSV
         with open("security_report.csv", "w", newline="", encoding="utf-8") as f:
             w = csv.DictWriter(f, fieldnames=results[0].keys())
             w.writeheader()
             w.writerows(results)
 
+        # Save HTML
         rows = ""
         for r in results:
             badge_color = "#ff4d4d" if r['risk'] == "CRITICAL" else "#ffa500"
-            rows += f"""
-            <tr>
-                <td><span class="badge" style="background-color: {badge_color};">{r['risk']}</span></td>
-                <td>{r['file']}</td>
-                <td style="color: #ffcc00; font-weight: bold;">{r['line']}</td>
-                <td style="color: #00ff00;">{r['type']}</td>
-                <td style="font-family: monospace;">{r['secret']}</td>
-                <td style="font-style: italic; color: #aaa;">{r['fix']}</td>
-            </tr>"""
+            rows += f"<tr><td><span class='badge' style='background:{badge_color}; color:white; padding:5px; border-radius:4px;'>{r['risk']}</span></td><td>{r['file']}</td><td>{r['line']}</td><td>{r['type']}</td><td><code>{r['secret']}</code></td><td>{r['fix']}</td></tr>"
 
-        html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>SEC-SNIFFER PRO Report</title>
-            <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
-            <style>
-                body {{ background-color: #111; color: #e0e0e0; font-family: sans-serif; padding: 30px; }}
-                h1 {{ color: #00ff00; border-bottom: 2px solid #00ff00; }}
-                table {{ background: #1a1a1a; }}
-                .badge {{ padding: 4px 8px; border-radius: 4px; color: white; }}
-            </style>
-            <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-            <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-            <script>$(document).ready(function(){{ $('table').DataTable(); }});</script>
-        </head>
-        <body>
-            <h1>SEC-SNIFFER PRO | Security Audit</h1>
-            <p>Vulnerabilities: {len(results)} | Time: {time.strftime('%H:%M:%S')}</p>
-            <table>
-                <thead><tr><th>Risk</th><th>File</th><th>Line</th><th>Type</th><th>Secret</th><th>Fix</th></tr></thead>
-                <tbody>{rows}</tbody>
-            </table>
-        </body>
-        </html>"""
+        html = f"""<html><head><title>SEC-SNIFFER Report</title><style>body{{background:#111; color:#eee; font-family:sans-serif;}} table{{width:100%; border-collapse:collapse;}} th,td{{padding:10px; border:1px solid #333; text-align:left;}} th{{background:#222; color:#00ff00;}}</style></head>
+        <body><h1>SEC-SNIFFER PRO | Security Audit</h1><p>Time: {time.ctime()}</p><table><thead><tr><th>Risk</th><th>File</th><th>Line</th><th>Type</th><th>Secret</th><th>Fix</th></tr></thead><tbody>{rows}</tbody></table></body></html>"""
         with open("security_dashboard.html", "w", encoding="utf-8") as f: f.write(html)
 
-# ================= GUI =================
+# ================= GUI (RESTORED) =================
 class SecSnifferGUI:
     def __init__(self, root):
         self.root = root
@@ -208,7 +219,7 @@ class SecSnifferGUI:
         tk.Button(root, text="Start Scan", command=self.start_scan, bg="#27ae60", fg="white").pack(pady=5)
         self.progress = ttk.Progressbar(root, length=800, mode='determinate')
         self.progress.pack(pady=10)
-        self.log = scrolledtext.ScrolledText(root, height=25)
+        self.log = scrolledtext.ScrolledText(root, height=25, bg="#111", fg="#00ff00")
         self.log.pack(fill=tk.BOTH, expand=True)
         self.root.after(100, self.process_queue)
 
@@ -219,7 +230,6 @@ class SecSnifferGUI:
     def start_scan(self):
         target = self.path.get()
         if not os.path.exists(target): return
-        self.log.insert(tk.END, "🚀 Scanning... Check terminal for banner.\n")
         print(get_banner())
         def worker():
             scanner = Scanner(target, self.queue, lambda s, t: self.update_progress(s, t))
@@ -240,7 +250,29 @@ class SecSnifferGUI:
             self.log.insert(tk.END, msg + "\n"); self.log.see(tk.END)
         self.root.after(100, self.process_queue)
 
+# ================= NEW: CLI HANDLER =================
+def run_cli(target):
+    print(get_banner())
+    scanner = Scanner(target)
+    scanner.scan_directory()
+    Reporter.save(scanner.results)
+    print(f"\n{Colors.BOLD}--- RESULTS ---{Colors.END}")
+    for r in scanner.results:
+        print(f"[{r['risk']}] {r['type']} - {r['file']}:{r['line']}")
+    if any(r['risk'] == "CRITICAL" for r in scanner.results):
+        sys.exit(1)
+    sys.exit(0)
+
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = SecSnifferGUI(root)
-    root.mainloop()
+    parser = argparse.ArgumentParser(description="SEC-SNIFFER PRO")
+    parser.add_argument("--path", type=str, help="Path to scan")
+    parser.add_argument("--no-gui", action="store_true", help="Run without GUI")
+    
+    args = parser.parse_args()
+
+    if args.no_gui and args.path:
+        run_cli(args.path)
+    else:
+        root = tk.Tk()
+        app = SecSnifferGUI(root)
+        root.mainloop()

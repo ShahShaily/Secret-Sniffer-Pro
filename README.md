@@ -21,6 +21,8 @@ Standard scanners often generate thousands of results, 90% of which are "False P
 * **🖥️ Dual-Mode Execution Engine**: Supports both a rich Graphical User Interface (GUI) for desktop users and a high-performance Headless CLI mode for servers, Docker containers, and automation            scripts.
 * **🛡️ Zero-Trust Git Guardian**: Deep-scans commit history and metadata to ensure no legacy secrets are hidden in your project's version control history.
 * **⚡ Performance Optimized**: Multi-threaded engine intelligently skips heavy folders like node_modules and .git for lightning-fast scanning of large repositories.
+* **📍 Dynamic Risk Classification**: Automatically categorizes leaks as CRITICAL, HIGH, or LOW based on live status, file permissions, and data randomness.
+* **⚠️ Live API Validation Engine**: Automatically verifies if Google and GitHub tokens are still active or expired by communicating with their official servers.
 * **📊 Professional Reporting**: Generates audit-ready reports in Interactive HTML Dashboard, JSON, and CSV formats for seamless security documentation.
 * **🖥️ Responsive GUI**: A clean, multi-threaded Tkinter interface that stays smooth and responsive even during heavy background operations.
 

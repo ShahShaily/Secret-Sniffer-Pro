@@ -16,7 +16,7 @@ jobs:
           python-version: '3.9'
 
       - name: Install Dependencies
-        run: pip install gitpython
+        run: pip install gitpython requests
 
       - name: Run SEC-SNIFFER Audit
         run: python sensitive_finder.py --path . --no-gui
